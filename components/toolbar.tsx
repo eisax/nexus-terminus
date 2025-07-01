@@ -24,6 +24,8 @@ import { useNavigationStore } from "@/lib/store"
 import { useRef, useState } from "react"
 import { CustomDropdown } from "./custom-dropdown"
 import { useRouter } from "next/navigation"
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog"
+import { QRCodeCanvas } from "qrcode.react"
 
 // Mock data - in a real app, this would come from your API/database
 const mockLocations = [
@@ -44,6 +46,7 @@ export function Toolbar() {
   const router = useRouter()
   const [selectedLocation, setSelectedLocation] = useState("campus")
   const [selectedFloor, setSelectedFloor] = useState("ozzene campus")
+  const [qrModalOpen, setQrModalOpen] = useState(false)
 
   const {
     currentTool,
@@ -237,11 +240,11 @@ export function Toolbar() {
               <Pentagon className="w-4 h-4 text-gray-600" />
             </Button>
             <Button
-              variant={currentTool === "qr" ? "secondary" : "ghost"}
+              variant={qrModalOpen ? "secondary" : "ghost"}
               size="sm"
               className="h-8 w-8 p-0 hover:bg-gray-100"
-              onClick={() => handleToolClick("qr")}
-              title="Add QR Code"
+              onClick={() => setQrModalOpen(true)}
+              title="Show QR Code"
             >
               <QrCode className="w-4 h-4 text-gray-600" />
             </Button>
@@ -344,6 +347,29 @@ export function Toolbar() {
           <span className="text-xs text-green-700 font-medium">Grid overlay is active</span>
         </div>
       )}
+
+      <Dialog open={qrModalOpen} onOpenChange={setQrModalOpen}>
+        <DialogContent className="max-w-xs p-0 rounded-2xl shadow-xl border bg-white">
+          <DialogTitle asChild>
+            <span className="sr-only">Open in Mobile Application</span>
+          </DialogTitle>
+          <div className="flex flex-col items-center w-full">
+            <div className="w-full rounded-t-2xl px-6 pt-6 pb-2">
+              <div className="text-center text-lg font-medium text-gray-900">Open in Mobile Application</div>
+            </div>
+            <div className="bg-white px-4 pt-2 pb-0 flex flex-col items-center w-full">
+              <div className="bg-white border rounded-lg p-2 mt-2 mb-2" style={{ boxShadow: '0 1px 4px rgba(0,0,0,0.04)' }}>
+                <QRCodeCanvas value="https://example.com/app" size={200} bgColor="#fff" />
+              </div>
+              <div className="text-gray-500 text-sm mt-2 mb-1">Learn more:</div>
+              <div className="flex flex-row gap-8 mb-4">
+                <a href="https://play.google.com/store" target="_blank" rel="noopener noreferrer" className="text-gray-800 font-medium hover:underline">Android app</a>
+                <a href="https://apps.apple.com" target="_blank" rel="noopener noreferrer" className="text-gray-800 font-medium hover:underline">IOS app</a>
+              </div>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
