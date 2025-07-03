@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Edit2, Lock, ChevronDown } from "lucide-react"
 import { EditFieldModal } from "@/components/edit-field-modal"
+import { ProtectedRoute } from "@/components/auth/protected-route"
 
 export default function ProfilePage() {
   const [language, setLanguage] = useState("English")
@@ -53,7 +54,8 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className="h-screen flex bg-white overflow-hidden">
+    <ProtectedRoute>
+        <div className="h-screen flex bg-white overflow-hidden">
       <Sidebar />
       <div className="flex-1 bg-gray-100 p-6 overflow-y-auto">
         <div className="flex gap-6 h-full">
@@ -184,5 +186,6 @@ export default function ProfilePage() {
         />
       )}
     </div>
+    </ProtectedRoute>
   )
 }

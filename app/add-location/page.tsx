@@ -10,6 +10,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { ArrowLeft, MapPin } from "lucide-react"
+import { ProtectedRoute } from "@/components/auth/protected-route"
 
 export default function AddLocationPage() {
   const router = useRouter()
@@ -48,7 +49,8 @@ export default function AddLocationPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-4">
+    <ProtectedRoute>
+        <div className="min-h-screen bg-gray-50 p-4">
       <div className="max-w-2xl mx-auto">
         {/* Header */}
         <div className="flex items-center gap-4 mb-6">
@@ -165,5 +167,6 @@ export default function AddLocationPage() {
         </Card>
       </div>
     </div>
+    </ProtectedRoute>
   )
 }

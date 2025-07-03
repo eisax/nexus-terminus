@@ -1,5 +1,6 @@
 "use client"
 
+import { ProtectedRoute } from "@/components/auth/protected-route"
 import { Sidebar } from "@/components/sidebar"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
@@ -35,7 +36,9 @@ export default function LocationsPage() {
   }
 
   return (
-    <div className="h-screen flex bg-white overflow-hidden">
+
+    <ProtectedRoute>
+        <div className="h-screen flex bg-white overflow-hidden">
       <Sidebar />
       <div className=" bg-gray-50  ">
         {/* Main Content */}
@@ -206,5 +209,8 @@ export default function LocationsPage() {
         </div>
       </div>
     </div>
+    </ProtectedRoute>
+
+    
   )
 }
