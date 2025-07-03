@@ -1082,11 +1082,6 @@ export function FloorPlanCanvas() {
         coordinates={pendingTransmitterCoordinates || { x: 0, y: 0 }}
       />
 
-      {/* Floor dimensions */}
-      <div className="absolute bottom-4 left-4 bg-white px-3 py-1 rounded shadow text-sm text-gray-600">
-        Canvas: 1200 x 800 px
-      </div>
-
       {/* Floor plan status */}
       <div className="absolute top-4 left-4 bg-white px-3 py-1 rounded shadow text-sm text-gray-600">
         {backgroundImageUrl ? (
@@ -1096,6 +1091,7 @@ export function FloorPlanCanvas() {
             {measurePoints.length > 0 && ` • Measuring: ${measurePoints.length}/2 points`}
             {showGrid && " • Grid: ON"}
             <span className="text-green-600"> • Floor Plan Loaded</span>
+            {drawnObjects.length > 0 && <span className="text-blue-600"> • Ready for Export</span>}
           </>
         ) : (
           <>
@@ -1104,18 +1100,40 @@ export function FloorPlanCanvas() {
             {measurePoints.length > 0 && ` • Measuring: ${measurePoints.length}/2 points`}
             {showGrid && " • Grid: ON"}
             <span className="text-orange-600"> • No Floor Plan</span>
+            {drawnObjects.length > 0 && <span className="text-blue-600"> • Ready for Export</span>}
           </>
         )}
       </div>
 
-      {/* Zoom controls */}
-      <div className="absolute top-4 right-4 bg-white rounded shadow border">
-        <button className="block p-2 hover:bg-gray-50 border-b text-lg font-bold" onClick={() => setZoom(zoom + 0.1)}>
-          +
-        </button>
-        <button className="block p-2 hover:bg-gray-50 text-lg font-bold" onClick={() => setZoom(zoom - 0.1)}>
-          −
-        </button>
+      {/* Mapping Progress Indicator */}
+      {currentTool && (
+        <div className="absolute top-16 left-4 bg-blue-100 border border-blue-300 px-3 py-2 rounded shadow text-sm">
+          <div className="flex items-center gap-2">
+            <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
+            <span className="text-blue-800 font-medium">
+              Mapping Mode: {currentTool.charAt(0).toUpperCase() + currentTool.slice(1)}
+            </span>
+          </div>
+          <div className="text-xs text-blue-600 mt-1">
+            Click on the canvas to place{" "}
+            {currentTool === "wifi"
+              ? "WiFi beacons"
+              : currentTool === "location"
+                ? "venue markers"
+                : currentTool === "path"
+                  ? "path nodes"
+                  : currentTool === "polygon"
+                    ? "polygon points"
+                    : currentTool === "measure"
+                      ? "measurement points"
+                      : "objects"}
+          </div>
+        </div>
+      )}
+
+      {/* Floor dimensions */}
+      <div className="absolute bottom-4 left-4 bg-white px-3 py-1 rounded shadow text-sm text-gray-600">
+        Canvas: 1200 x 800 px
       </div>
 
       {/* Compass */}

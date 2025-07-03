@@ -60,6 +60,8 @@ interface NavigationState {
   showGrid: boolean
   copyObject: (id: string) => void
   deleteSelectedObject: (id: string) => void
+  exportMappingData: (format: "json" | "xml") => string
+  hasMappingData: () => boolean
 
   setCurrentTool: (tool: string | null) => void
   addDrawnObject: (object: DrawnObject) => void
@@ -85,7 +87,7 @@ interface NavigationState {
   addMeasurePoint: (point: { x: number; y: number }) => void
   clearMeasurePoints: () => void
   setZoom: (zoom: number) => void
-  setPan: (x: number, y: number) => void
+  setPan: (x, y: number) => void
   setBackgroundImage: (image: HTMLImageElement | null, url: string | null) => void
   toggleGrid: () => void
   clearAll: () => void
@@ -221,5 +223,89 @@ export const useNavigationStore = create<NavigationState>((set, get) => ({
       drawnObjects: state.drawnObjects.filter((obj) => obj.id !== id),
       pathConnections: state.pathConnections.filter((conn) => conn.from !== id && conn.to !== id),
     }))
+  },
+  exportMappingData: (format) => {
+    const state = get()
+    const mappingData = {
+      metadata: {
+        exportDate: new Date().toISOString(),
+        totalObjects: state.drawnObjects.length,
+        backgroundImageUrl: state.backgroundImageUrl,
+        canvasSize: { width: 1200, height: 800 },
+        zoom: state.zoom,
+        pan: { x: state.panX, y: state.panY },
+      },
+      objects: state.drawnObjects.map((obj) => ({
+        id: obj.id,
+        type: obj.type,
+        coordinates: { x: obj.x, y: obj.y },
+        ...(obj.points && { points: obj.points }),
+        ...(obj.venueData && { venueData: obj.venueData }),
+        ...(obj.measureData && { measureData: obj.measureData }),
+        ...(obj.transmitterData && { transmitterData: obj.transmitterData }),
+      })),
+      pathConnections: state.pathConnections,
+    }
+
+    if (format === "json") {
+      return JSON.stringify(mappingData, null, 2)
+    } else {
+      // XML format
+      const xmlHeader = '<?xml version="1.0" encoding="UTF-8"?>\n'
+      const xmlContent = `<mappingData>
+  <metadata>
+    <exportDate>${mappingData.metadata.exportDate}</exportDate>
+    <totalObjects>${mappingData.metadata.totalObjects}</totalObjects>
+    <backgroundImageUrl>${mappingData.metadata.backgroundImageUrl || ""}</backgroundImageUrl>
+    <canvasSize width="${mappingData.metadata.canvasSize.width}" height="${mappingData.metadata.canvasSize.height}" />
+    <zoom>${mappingData.metadata.zoom}</zoom>
+    <pan x="${mappingData.metadata.pan.x}" y="${mappingData.metadata.pan.y}" />
+  </metadata>
+  <objects>
+${mappingData.objects
+  .map(
+    (obj) => `    <object id="${obj.id}" type="${obj.type}">
+      <coordinates x="${obj.coordinates.x}" y="${obj.coordinates.y}" />
+${obj.points ? `      <points>${obj.points.map((p) => `<point x="${p.x}" y="${p.y}" />`).join("")}</points>` : ""}
+${
+  obj.venueData
+    ? `      <venueData>
+        <name>${obj.venueData.name}</name>
+        <class>${obj.venueData.class}</class>
+        <description>${obj.venueData.description}</description>
+      </venueData>`
+    : ""
+}
+${
+  obj.measureData
+    ? `      <measureData>
+        <actualDistance>${obj.measureData.actualDistance}</actualDistance>
+        <pixelDistance>${obj.measureData.pixelDistance}</pixelDistance>
+      </measureData>`
+    : ""
+}
+${
+  obj.transmitterData
+    ? `      <transmitterData>
+        <type>${obj.transmitterData.type}</type>
+        <description>${obj.transmitterData.description}</description>
+        <uuid>${obj.transmitterData.uuid}</uuid>
+      </transmitterData>`
+    : ""
+}
+    </object>`,
+  )
+  .join("\n")}
+  </objects>
+  <pathConnections>
+${mappingData.pathConnections.map((conn) => `    <connection from="${conn.from}" to="${conn.to}" />`).join("\n")}
+  </pathConnections>
+</mappingData>`
+      return xmlHeader + xmlContent
+    }
+  },
+  hasMappingData: () => {
+    const state = get()
+    return state.drawnObjects.length > 0
   },
 }))
