@@ -87,7 +87,7 @@ interface NavigationState {
   addMeasurePoint: (point: { x: number; y: number }) => void
   clearMeasurePoints: () => void
   setZoom: (zoom: number) => void
-  setPan: (x, y: number) => void
+  setPan: (x: number, y: number) => void
   setBackgroundImage: (image: HTMLImageElement | null, url: string | null) => void
   toggleGrid: () => void
   clearAll: () => void

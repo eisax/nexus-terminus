@@ -181,7 +181,7 @@ export function Toolbar() {
               onChange={handleImageUpload}
               className="hidden"
               title="Upload floor plan image"
-              placeholder="Select a floor plan image"
+              placeholder="Choose floor plan image"
             />
             <Button
               variant="default"
