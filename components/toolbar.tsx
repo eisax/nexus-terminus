@@ -19,6 +19,8 @@ import {
   Pentagon,
   Upload,
   X,
+  Download,
+  FileText,
 } from "lucide-react"
 import { useNavigationStore } from "@/lib/store"
 import { useRef, useState } from "react"
@@ -26,6 +28,7 @@ import { CustomDropdown } from "./custom-dropdown"
 import { useRouter } from "next/navigation"
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog"
 import { QRCodeCanvas } from "qrcode.react"
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 
 // Mock data - in a real app, this would come from your API/database
 const mockLocations = [
@@ -47,6 +50,7 @@ export function Toolbar() {
   const [selectedLocation, setSelectedLocation] = useState("campus")
   const [selectedFloor, setSelectedFloor] = useState("ozzene campus")
   const [qrModalOpen, setQrModalOpen] = useState(false)
+  const [isExporting, setIsExporting] = useState(false)
 
   const {
     currentTool,
@@ -57,6 +61,8 @@ export function Toolbar() {
     completePolygon,
     setBackgroundImage,
     clearAll,
+    exportMappingData,
+    hasMappingData,
   } = useNavigationStore()
   const fileInputRef = useRef<HTMLInputElement>(null)
 
@@ -118,6 +124,28 @@ export function Toolbar() {
     router.push("/add-floor")
   }
 
+  const handleExportData = async (format: "json" | "xml") => {
+    setIsExporting(true)
+    try {
+      const data = exportMappingData(format)
+      const blob = new Blob([data], {
+        type: format === "json" ? "application/json" : "application/xml",
+      })
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement("a")
+      a.href = url
+      a.download = `floor-plan-mapping.${format}`
+      document.body.appendChild(a)
+      a.click()
+      document.body.removeChild(a)
+      URL.revokeObjectURL(url)
+    } catch (error) {
+      alert("Failed to export mapping data. Please try again.")
+    } finally {
+      setIsExporting(false)
+    }
+  }
+
   return (
     <div className="bg-white border-b border-gray-200">
       {/* Top section with location/floor selectors */}
@@ -152,17 +180,50 @@ export function Toolbar() {
               accept="image/*,.svg"
               onChange={handleImageUpload}
               className="hidden"
+              title="Upload floor plan image"
+              placeholder="Choose floor plan image"
             />
             <Button
-              variant="ghost"
+              variant="default"
               size="sm"
-              className="h-7 px-2 text-xs hover:bg-gray-100"
+              className="h-7 px-2 text-xs bg-blue-600 hover:bg-blue-700 text-white"
               onClick={() => fileInputRef.current?.click()}
               title="Upload Floor Plan"
             >
               <Upload className="w-3 h-3 mr-1" />
               {backgroundImageUrl ? "Change" : "Upload"}
             </Button>
+
+            {/* Export Button */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className={`h-7 px-2 text-xs ${
+                    hasMappingData()
+                      ? "border-green-600 text-green-700 hover:bg-green-50"
+                      : "border-gray-300 text-gray-400 cursor-not-allowed"
+                  }`}
+                  disabled={!hasMappingData() || isExporting}
+                  title={hasMappingData() ? "Export mapping data" : "No mapping data to export"}
+                >
+                  <Download className="w-3 h-3 mr-1" />
+                  {isExporting ? "Exporting..." : "Export"}
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start" className="w-32">
+                <DropdownMenuItem onClick={() => handleExportData("json")}>
+                  <FileText className="w-3 h-3 mr-2" />
+                  JSON
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleExportData("xml")}>
+                  <FileText className="w-3 h-3 mr-2" />
+                  XML
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+
             {backgroundImageUrl && (
               <Button
                 variant="ghost"
@@ -358,13 +419,30 @@ export function Toolbar() {
               <div className="text-center text-lg font-medium text-gray-900">Open in Mobile Application</div>
             </div>
             <div className="bg-white px-4 pt-2 pb-0 flex flex-col items-center w-full">
-              <div className="bg-white border rounded-lg p-2 mt-2 mb-2" style={{ boxShadow: '0 1px 4px rgba(0,0,0,0.04)' }}>
+              <div
+                className="bg-white border rounded-lg p-2 mt-2 mb-2"
+                style={{ boxShadow: "0 1px 4px rgba(0,0,0,0.04)" }}
+              >
                 <QRCodeCanvas value="https://example.com/app" size={200} bgColor="#fff" />
               </div>
               <div className="text-gray-500 text-sm mt-2 mb-1">Learn more:</div>
               <div className="flex flex-row gap-8 mb-4">
-                <a href="https://play.google.com/store" target="_blank" rel="noopener noreferrer" className="text-gray-800 font-medium hover:underline">Android app</a>
-                <a href="https://apps.apple.com" target="_blank" rel="noopener noreferrer" className="text-gray-800 font-medium hover:underline">IOS app</a>
+                <a
+                  href="https://play.google.com/store"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-gray-800 font-medium hover:underline"
+                >
+                  Android app
+                </a>
+                <a
+                  href="https://apps.apple.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-gray-800 font-medium hover:underline"
+                >
+                  IOS app
+                </a>
               </div>
             </div>
           </div>

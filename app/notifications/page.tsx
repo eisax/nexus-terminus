@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { HelpCircle, Plus } from "lucide-react"
 import { AddNotificationDialog } from "@/components/add-notification-dialog"
+import { ProtectedRoute } from "@/components/auth/protected-route"
 
 export default function NotificationsPage() {
   const [selectedLocation, setSelectedLocation] = useState("campus")
@@ -23,6 +24,9 @@ export default function NotificationsPage() {
   }
 
   return (
+
+    <ProtectedRoute>
+
     <div className="h-screen flex bg-white overflow-hidden">
       <Sidebar />
       <div className="flex-1 bg-gray-100 overflow-y-auto">
@@ -146,5 +150,8 @@ export default function NotificationsPage() {
         />
       </div>
     </div>
+
+    </ProtectedRoute>
+
   )
 }

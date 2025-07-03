@@ -65,8 +65,8 @@ export function FloorPlanCanvas() {
       ctx.globalAlpha = 0.5
 
       const gridSize = 20
-      const canvasWidth = 5000
-      const canvasHeight = 5000
+      const canvasWidth = 1200
+      const canvasHeight = 800
 
       // Draw vertical lines
       for (let x = 0; x <= canvasWidth; x += gridSize) {
@@ -98,28 +98,28 @@ export function FloorPlanCanvas() {
 
       // Set canvas background to white
       ctx.fillStyle = "#ffffff"
-      ctx.fillRect(0, 0, 5000, 5000)
+      ctx.fillRect(0, 0, 1200, 800)
 
       if (backgroundImage) {
         // Draw the uploaded floor plan image
         try {
           // Calculate aspect ratio to fit image properly
           const imgAspect = backgroundImage.width / backgroundImage.height
-          const canvasAspect = 5000 / 5000
+          const canvasAspect = 1200 / 800
 
-          let drawWidth = 50000
-          let drawHeight = 5000
+          let drawWidth = 1200
+          let drawHeight = 800
           let drawX = 0
           let drawY = 0
 
           if (imgAspect > canvasAspect) {
             // Image is wider - fit to width
-            drawHeight = 5000 / imgAspect
-            drawY = (5000 - drawHeight) / 2
+            drawHeight = 1200 / imgAspect
+            drawY = (800 - drawHeight) / 2
           } else {
             // Image is taller - fit to height
-            drawWidth = 5000 * imgAspect
-            drawX = (5000 - drawWidth) / 2
+            drawWidth = 800 * imgAspect
+            drawX = (1200 - drawWidth) / 2
           }
 
           ctx.drawImage(backgroundImage, drawX, drawY, drawWidth, drawHeight)
@@ -1082,11 +1082,6 @@ export function FloorPlanCanvas() {
         coordinates={pendingTransmitterCoordinates || { x: 0, y: 0 }}
       />
 
-      {/* Floor dimensions */}
-      <div className="absolute bottom-4 left-4 bg-white px-3 py-1 rounded shadow text-sm text-gray-600">
-        Canvas: 1200 x 800 px
-      </div>
-
       {/* Floor plan status */}
       <div className="absolute top-4 left-4 bg-white px-3 py-1 rounded shadow text-sm text-gray-600">
         {backgroundImageUrl ? (
@@ -1096,6 +1091,7 @@ export function FloorPlanCanvas() {
             {measurePoints.length > 0 && ` • Measuring: ${measurePoints.length}/2 points`}
             {showGrid && " • Grid: ON"}
             <span className="text-green-600"> • Floor Plan Loaded</span>
+            {drawnObjects.length > 0 && <span className="text-blue-600"> • Ready for Export</span>}
           </>
         ) : (
           <>
@@ -1104,18 +1100,40 @@ export function FloorPlanCanvas() {
             {measurePoints.length > 0 && ` • Measuring: ${measurePoints.length}/2 points`}
             {showGrid && " • Grid: ON"}
             <span className="text-orange-600"> • No Floor Plan</span>
+            {drawnObjects.length > 0 && <span className="text-blue-600"> • Ready for Export</span>}
           </>
         )}
       </div>
 
-      {/* Zoom controls */}
-      <div className="absolute top-4 right-4 bg-white rounded shadow border">
-        <button className="block p-2 hover:bg-gray-50 border-b text-lg font-bold" onClick={() => setZoom(zoom + 0.1)}>
-          +
-        </button>
-        <button className="block p-2 hover:bg-gray-50 text-lg font-bold" onClick={() => setZoom(zoom - 0.1)}>
-          −
-        </button>
+      {/* Mapping Progress Indicator */}
+      {currentTool && (
+        <div className="absolute top-16 left-4 bg-blue-100 border border-blue-300 px-3 py-2 rounded shadow text-sm">
+          <div className="flex items-center gap-2">
+            <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
+            <span className="text-blue-800 font-medium">
+              Mapping Mode: {currentTool.charAt(0).toUpperCase() + currentTool.slice(1)}
+            </span>
+          </div>
+          <div className="text-xs text-blue-600 mt-1">
+            Click on the canvas to place{" "}
+            {currentTool === "wifi"
+              ? "WiFi beacons"
+              : currentTool === "location"
+                ? "venue markers"
+                : currentTool === "path"
+                  ? "path nodes"
+                  : currentTool === "polygon"
+                    ? "polygon points"
+                    : currentTool === "measure"
+                      ? "measurement points"
+                      : "objects"}
+          </div>
+        </div>
+      )}
+
+      {/* Floor dimensions */}
+      <div className="absolute bottom-4 left-4 bg-white px-3 py-1 rounded shadow text-sm text-gray-600">
+        Canvas: 1200 x 800 px
       </div>
 
       {/* Compass */}

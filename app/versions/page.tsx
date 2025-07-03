@@ -5,6 +5,7 @@ import { Sidebar } from "@/components/sidebar"
 import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Edit2, Download, HelpCircle } from "lucide-react"
+import { ProtectedRoute } from "@/components/auth/protected-route"
 
 interface VersionData {
   id: number
@@ -106,7 +107,8 @@ export default function VersionsPage() {
   }
 
   return (
-    <div className="h-screen flex bg-white overflow-hidden">
+    <ProtectedRoute>
+          <div className="h-screen flex bg-white overflow-hidden">
       <Sidebar />
       <div className="flex-1 bg-gray-100 overflow-y-auto">
         {/* Top Section */}
@@ -213,5 +215,7 @@ export default function VersionsPage() {
         </div>
       </div>
     </div>
+    </ProtectedRoute>
+  
   )
 }
