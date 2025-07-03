@@ -65,8 +65,8 @@ export function FloorPlanCanvas() {
       ctx.globalAlpha = 0.5
 
       const gridSize = 20
-      const canvasWidth = 5000
-      const canvasHeight = 5000
+      const canvasWidth = 1200
+      const canvasHeight = 800
 
       // Draw vertical lines
       for (let x = 0; x <= canvasWidth; x += gridSize) {
@@ -98,28 +98,28 @@ export function FloorPlanCanvas() {
 
       // Set canvas background to white
       ctx.fillStyle = "#ffffff"
-      ctx.fillRect(0, 0, 5000, 5000)
+      ctx.fillRect(0, 0, 1200, 800)
 
       if (backgroundImage) {
         // Draw the uploaded floor plan image
         try {
           // Calculate aspect ratio to fit image properly
           const imgAspect = backgroundImage.width / backgroundImage.height
-          const canvasAspect = 5000 / 5000
+          const canvasAspect = 1200 / 800
 
-          let drawWidth = 50000
-          let drawHeight = 5000
+          let drawWidth = 1200
+          let drawHeight = 800
           let drawX = 0
           let drawY = 0
 
           if (imgAspect > canvasAspect) {
             // Image is wider - fit to width
-            drawHeight = 5000 / imgAspect
-            drawY = (5000 - drawHeight) / 2
+            drawHeight = 1200 / imgAspect
+            drawY = (800 - drawHeight) / 2
           } else {
             // Image is taller - fit to height
-            drawWidth = 5000 * imgAspect
-            drawX = (5000 - drawWidth) / 2
+            drawWidth = 800 * imgAspect
+            drawX = (1200 - drawWidth) / 2
           }
 
           ctx.drawImage(backgroundImage, drawX, drawY, drawWidth, drawHeight)
