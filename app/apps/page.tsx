@@ -9,6 +9,7 @@ import { Trash2 } from "lucide-react"
 import { AddOptionsDialog } from "@/components/add-options-dialog"
 import { AddUserDialog } from "@/components/add-user-dialog"
 import { AddLocationDialog } from "@/components/add-location-dialog"
+import { ProtectedRoute } from "@/components/auth/protected-route"
 
 interface AppOption {
   id: string
@@ -91,7 +92,8 @@ export default function AppsPage() {
   }
 
   return (
-    <div className="h-screen flex bg-white overflow-hidden">
+      <ProtectedRoute>
+          <div className="h-screen flex bg-white overflow-hidden">
       <Sidebar />
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Main Content */}
@@ -510,5 +512,6 @@ export default function AppsPage() {
         </div>
       </div>
     </div>
+      </ProtectedRoute>
   )
 }
