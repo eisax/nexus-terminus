@@ -180,6 +180,8 @@ export function Toolbar() {
               accept="image/*,.svg"
               onChange={handleImageUpload}
               className="hidden"
+              title="Upload floor plan image"
+              placeholder="Select a floor plan image"
             />
             <Button
               variant="default"
