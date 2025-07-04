@@ -41,7 +41,7 @@ const createApiClient = (): AxiosInstance => {
           const refreshToken = localStorage.getItem("refresh_token")
           if (refreshToken) {
             const response = await axios.post(
-              `${process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3001"}/api/v1/auth/refresh-token`,
+              `${process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3000"}/api/v1/auth/refresh-token`,
               {},
               {
                 headers: {

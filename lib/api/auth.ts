@@ -29,14 +29,36 @@ export class AuthAPI {
     return response.data
   }
 
+//   static async validateToken(): Promise<boolean> {
+//     try {
+//       const token = localStorage.getItem("auth_token")
+//       if (!token) return false
+
+//       // You can add a validate endpoint or just try to make an authenticated request
+//       const response = await apiClient.get("/api/v1/auth/me")
+//       return response.status === 200
+//     } catch {
+//       return false
+//     }
+//   }
+
+
   static async validateToken(): Promise<boolean> {
     try {
       const token = localStorage.getItem("auth_token")
       if (!token) return false
 
-      // You can add a validate endpoint or just try to make an authenticated request
-      const response = await apiClient.get("/api/v1/auth/me")
-      return response.status === 200
+      // Try to refresh the token to validate it
+      const refreshResponse = await this.refreshToken()
+      
+      // If refresh is successful, update the stored tokens
+      if (refreshResponse.success && refreshResponse.data) {
+        localStorage.setItem("auth_token", refreshResponse.data.token)
+        localStorage.setItem("refresh_token", refreshResponse.data.refreshToken)
+        return true
+      }
+      
+      return false
     } catch {
       return false
     }
