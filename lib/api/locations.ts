@@ -59,7 +59,7 @@ export class LocationAPI {
 
       // Upload to Supabase storage
       const fileName = `locations/${uuid}.json`
-      const { data, error } = await supabase.storage.from("mapping-data").upload(fileName, jsonBlob, {
+      const { data, error } = await supabase.storage.from("mappings").upload(fileName, jsonBlob, {
         cacheControl: "3600",
         upsert: false,
       })
@@ -69,7 +69,7 @@ export class LocationAPI {
       }
 
       // Get public URL
-      const { data: urlData } = supabase.storage.from("mapping-data").getPublicUrl(fileName)
+      const { data: urlData } = supabase.storage.from("mappings").getPublicUrl(fileName)
 
       return urlData.publicUrl
     } catch (error) {
