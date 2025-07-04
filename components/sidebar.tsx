@@ -18,16 +18,7 @@ const navigation = [
     href: "/locations",
     icon: MapPin,
   },
-  {
-    name: "Add Location",
-    href: "/add-location",
-    icon: Building2,
-  },
-  {
-    name: "Add Floor",
-    href: "/add-floor",
-    icon: Layers,
-  },
+
   {
     name: "Apps",
     href: "/apps",
