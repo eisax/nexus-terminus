@@ -1,57 +1,98 @@
 "use client"
+import Link from "next/link"
+import { usePathname } from "next/navigation"
+import { cn } from "@/lib/utils"
+import { Button } from "@/components/ui/button"
+import { ScrollArea } from "@/components/ui/scroll-area"
+import { Home, MapPin, Building2, Users, Bell, Navigation, Layers, GitBranch } from "lucide-react"
+import Image from "next/image"
 
-import { useRouter, usePathname } from "next/navigation"
-import { Home, MapPin, Bell, GitBranch, Package, User } from "lucide-react"
-
-const sidebarItems = [
-  { icon: Home, label: "Home page", id: "home", path: "/locations" },
-  { icon: MapPin, label: "Locations", id: "locations", path: "/" },
-  { icon: Bell, label: "Notifications", id: "notifications", path: "/notifications" },
-  { icon: GitBranch, label: "Versions", id: "versions", path: "/versions" },
-  { icon: Package, label: "Apps", id: "apps", path: "/apps" },
-  { icon: User, label: "Profile", id: "profile", path: "/profile" },
+const navigation = [
+  {
+    name: "Dashboard",
+    href: "/",
+    icon: Home,
+  },
+  {
+    name: "Locations",
+    href: "/locations",
+    icon: MapPin,
+  },
+  {
+    name: "Add Location",
+    href: "/add-location",
+    icon: Building2,
+  },
+  {
+    name: "Add Floor",
+    href: "/add-floor",
+    icon: Layers,
+  },
+  {
+    name: "Apps",
+    href: "/apps",
+    icon: Navigation,
+  },
+  {
+    name: "Notifications",
+    href: "/notifications",
+    icon: Bell,
+  },
+  {
+    name: "Profile",
+    href: "/profile",
+    icon: Users,
+  },
+  {
+    name: "Versions",
+    href: "/versions",
+    icon: GitBranch,
+  },
 ]
 
-export function Sidebar() {
-  const router = useRouter()
+interface SidebarProps {
+  className?: string
+}
+
+export function Sidebar({ className }: SidebarProps) {
   const pathname = usePathname()
 
-  const handleNavigation = (path: string) => {
-    router.push(path)
-  }
-
   return (
-    <div className="w-48 bg-gray-50 border-r border-gray-200 flex flex-col h-screen">
-      {/* Navigation */}
-      <nav className="flex-1 py-4">
-        <div className="space-y-1 px-3">
-          {sidebarItems.map((item) => {
-            const Icon = item.icon
-            const isActive = pathname === item.path
-
-            return (
-              <div
-                key={item.id}
-                className={`flex items-center gap-3 px-3 py-2 rounded-md text-sm cursor-pointer ${
-                  isActive ? "bg-blue-100 text-blue-700 font-medium" : "text-gray-700 hover:bg-gray-100"
-                }`}
-                onClick={() => handleNavigation(item.path)}
-              >
-                <Icon className="w-4 h-4" />
-                <span>{item.label}</span>
-              </div>
-            )
-          })}
-        </div>
-      </nav>
-
-      {/* Nexus Logo at bottom */}
-      <div className="p-4 border-t border-gray-200">
-        <div className="flex items-center gap-2">
-          <div className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center">
-            <div className="w-3 h-3 bg-white rounded-full"></div>
+    <div className={cn("pb-12 w-64", className)}>
+      <div className="space-y-4 py-4">
+        <div className="px-3 py-2">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="w-10 h-10 relative">
+              <Image src="/logo.png" alt="Nexus Terminus" width={40} height={40} className="object-contain" />
+            </div>
+            <div>
+              <h2 className="text-lg font-semibold text-foreground">Nexus Terminus</h2>
+              <p className="text-xs text-muted-foreground">Navigation Platform</p>
+            </div>
           </div>
-          <span className="text-sm font-semibold text-gray-800">Nexus</span>
+          <ScrollArea className="h-[calc(100vh-8rem)]">
+            <div className="space-y-1">
+              {navigation.map((item) => {
+                const isActive = pathname === item.href
+                return (
+                  <Button
+                    key={item.name}
+                    variant={isActive ? "secondary" : "ghost"}
+                    className={cn(
+                      "w-full justify-start gap-3 h-10",
+                      isActive && "bg-primary/10 text-primary hover:bg-primary/15 hover:text-primary",
+                    )}
+                    asChild
+                  >
+                    <Link href={item.href}>
+                      <item.icon className="h-4 w-4" />
+                      {item.name}
+                    </Link>
+                  </Button>
+                )
+              })}
+            </div>
+          </ScrollArea>
         </div>
       </div>
     </div>

@@ -1,26 +1,27 @@
 "use client"
 
 import type React from "react"
-
+import { useState, useEffect } from "react"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import Link from "next/link"
-import { useState, useEffect } from "react"
+import { Eye, EyeOff, ArrowRight, Mail, Lock, MapPin } from "lucide-react"
+import Image from "next/image"
 import { useAuth } from "@/lib/auth/context"
 import { useRouter } from "next/navigation"
-import { Eye, EyeOff } from "lucide-react"
 
 export default function SignInPage() {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [showPassword, setShowPassword] = useState(false)
   const [errors, setErrors] = useState<{ email?: string; password?: string }>({})
+  const [focusedField, setFocusedField] = useState<string | null>(null)
 
   const { login, isLoading, isAuthenticated } = useAuth()
   const router = useRouter()
 
+  // Redirect if already authenticated
   useEffect(() => {
     if (isAuthenticated) {
       router.push("/")
@@ -60,83 +61,179 @@ export default function SignInPage() {
     }
   }
 
+  // Show loading spinner if already authenticated
   if (isAuthenticated) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-gray-900"></div>
+        <div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-primary"></div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-black">
-      <Card className="w-full max-w-md p-8 space-y-6">
-        <div className="text-center">
-          <h2 className="text-2xl font-bold">Sign In</h2>
-          <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">Welcome back! Please sign in to your account.</p>
-        </div>
+    <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-primary/5 via-background to-primary/10 relative overflow-hidden">
+      {/* Animated background elements */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-primary/10 rounded-full blur-3xl animate-float"></div>
+        <div
+          className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-primary/15 rounded-full blur-3xl animate-float"
+          style={{ animationDelay: "1s" }}
+        ></div>
+        <div
+          className="absolute top-3/4 left-1/3 w-64 h-64 bg-primary/8 rounded-full blur-3xl animate-float"
+          style={{ animationDelay: "2s" }}
+        ></div>
+      </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <Label htmlFor="email">Email</Label>
-            <Input
-              id="email"
-              type="email"
-              value={email}
-              onChange={(e) => {
-                setEmail(e.target.value)
-                if (errors.email) setErrors((prev) => ({ ...prev, email: undefined }))
-              }}
-              placeholder="superadmin@kingsman.com"
-              className={errors.email ? "border-red-500" : ""}
-            />
-            {errors.email && <p className="text-sm text-red-500 mt-1">{errors.email}</p>}
-          </div>
+      {/* Geometric pattern overlay */}
+      <div className="absolute inset-0 opacity-5">
+        <div className="absolute top-10 left-10 w-4 h-4 bg-primary rotate-45"></div>
+        <div className="absolute top-20 right-20 w-3 h-3 bg-primary rounded-full"></div>
+        <div className="absolute bottom-20 left-20 w-2 h-8 bg-primary"></div>
+        <div className="absolute bottom-10 right-10 w-6 h-6 bg-primary rotate-45"></div>
+        <div className="absolute top-1/2 left-5 w-1 h-12 bg-primary"></div>
+        <div className="absolute top-1/3 right-5 w-5 h-5 bg-primary rounded-full"></div>
+      </div>
 
-          <div>
-            <Label htmlFor="password">Password</Label>
-            <div className="relative">
-              <Input
-                id="password"
-                type={showPassword ? "text" : "password"}
-                value={password}
-                onChange={(e) => {
-                  setPassword(e.target.value)
-                  if (errors.password) setErrors((prev) => ({ ...prev, password: undefined }))
-                }}
-                placeholder="••••••••"
-                className={errors.password ? "border-red-500 pr-10" : "pr-10"}
-              />
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
-                onClick={() => setShowPassword(!showPassword)}
-              >
-                {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-              </Button>
+      <Card className="relative w-full max-w-md bg-card/95 backdrop-blur-sm border-primary/20 shadow-2xl animate-pulse-glow">
+        <div className="p-8 space-y-8">
+          {/* Header with Logo */}
+          <div className="text-center space-y-6">
+            <div className="mx-auto w-20 h-20 relative mb-6">
+              <Image src="/logo.png" alt="Nexus Terminus Logo" width={80} height={80} className="object-contain" />
             </div>
-            {errors.password && <p className="text-sm text-red-500 mt-1">{errors.password}</p>}
+            <div>
+              <h1 className="text-3xl font-bold text-foreground mb-2">Nexus Terminus</h1>
+              <h2 className="text-xl font-semibold text-primary mb-3">Welcome Back</h2>
+              <p className="text-muted-foreground flex items-center justify-center gap-2">
+                <MapPin className="h-4 w-4" />
+                Indoor Navigation & Mapping Platform
+              </p>
+            </div>
           </div>
 
-          <Button type="submit" className="w-full" disabled={isLoading}>
-            {isLoading ? "Signing in..." : "Sign In"}
-          </Button>
-        </form>
+          <form onSubmit={handleSubmit} className="space-y-6">
+            {/* Email Field */}
+            <div className="space-y-2">
+              <Label htmlFor="email" className="text-sm font-medium text-foreground">
+                Email Address
+              </Label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <Mail
+                    className={`h-4 w-4 transition-colors ${
+                      focusedField === "email" ? "text-primary" : "text-muted-foreground"
+                    }`}
+                  />
+                </div>
+                <Input
+                  id="email"
+                  type="email"
+                  value={email}
+                  onChange={(e) => {
+                    setEmail(e.target.value)
+                    if (errors.email) setErrors((prev) => ({ ...prev, email: undefined }))
+                  }}
+                  onFocus={() => setFocusedField("email")}
+                  onBlur={() => setFocusedField(null)}
+                  placeholder="superadmin@kingsman.com"
+                  className={`pl-10 h-12 transition-all duration-200 bg-background/50 ${
+                    errors.email
+                      ? "border-destructive focus:border-destructive focus:ring-destructive"
+                      : "border-border focus:border-primary focus:ring-primary"
+                  } ${focusedField === "email" ? "shadow-lg shadow-primary/20" : ""}`}
+                />
+              </div>
+              {errors.email && (
+                <p className="text-sm text-destructive animate-in slide-in-from-left-1 duration-200">{errors.email}</p>
+              )}
+            </div>
 
-        <div className="text-center">
-          <p className="text-sm text-gray-500 dark:text-gray-400">
-            Demo credentials: superadmin@kingsman.com / admin123456
-          </p>
+            {/* Password Field */}
+            <div className="space-y-2">
+              <Label htmlFor="password" className="text-sm font-medium text-foreground">
+                Password
+              </Label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <Lock
+                    className={`h-4 w-4 transition-colors ${
+                      focusedField === "password" ? "text-primary" : "text-muted-foreground"
+                    }`}
+                  />
+                </div>
+                <Input
+                  id="password"
+                  type={showPassword ? "text" : "password"}
+                  value={password}
+                  onChange={(e) => {
+                    setPassword(e.target.value)
+                    if (errors.password) setErrors((prev) => ({ ...prev, password: undefined }))
+                  }}
+                  onFocus={() => setFocusedField("password")}
+                  onBlur={() => setFocusedField(null)}
+                  placeholder="••••••••"
+                  className={`pl-10 pr-12 h-12 transition-all duration-200 bg-background/50 ${
+                    errors.password
+                      ? "border-destructive focus:border-destructive focus:ring-destructive"
+                      : "border-border focus:border-primary focus:ring-primary"
+                  } ${focusedField === "password" ? "shadow-lg shadow-primary/20" : ""}`}
+                />
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="absolute right-0 top-0 h-full px-3 hover:bg-transparent"
+                  onClick={() => setShowPassword(!showPassword)}
+                >
+                  {showPassword ? (
+                    <EyeOff className="h-4 w-4 text-muted-foreground hover:text-foreground" />
+                  ) : (
+                    <Eye className="h-4 w-4 text-muted-foreground hover:text-foreground" />
+                  )}
+                </Button>
+              </div>
+              {errors.password && (
+                <p className="text-sm text-destructive animate-in slide-in-from-left-1 duration-200">
+                  {errors.password}
+                </p>
+              )}
+            </div>
+
+            {/* Submit Button */}
+            <Button
+              type="submit"
+              className="w-full h-12 bg-primary hover:bg-primary/90 text-primary-foreground font-medium shadow-lg hover:shadow-xl transition-all duration-200 group"
+              disabled={isLoading}
+            >
+              {isLoading ? (
+                <div className="flex items-center gap-2">
+                  <div className="w-4 h-4 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin"></div>
+                  Signing in...
+                </div>
+              ) : (
+                <div className="flex items-center gap-2">
+                  Access Platform
+                  <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
+                </div>
+              )}
+            </Button>
+          </form>
+
+          {/* Demo Credentials */}
+          <div className="bg-primary/10 rounded-lg p-4 border border-primary/20">
+            <p className="text-sm text-foreground text-center">
+              <span className="font-medium text-primary">Demo Access:</span>
+              <br />
+              superadmin@kingsman.com / admin123456
+            </p>
+          </div>
+
+          {/* Footer */}
+          <div className="text-center pt-4 border-t border-border">
+            <p className="text-xs text-muted-foreground">© 2024 Nexus Terminus. Secure Indoor Navigation Platform.</p>
+          </div>
         </div>
-
-        <p className="text-center text-sm text-gray-500 dark:text-gray-400">
-          Don&apos;t have an account?{" "}
-          <Link href="/signup" className="text-blue-600 hover:underline">
-            Sign Up
-          </Link>
-        </p>
       </Card>
     </div>
   )

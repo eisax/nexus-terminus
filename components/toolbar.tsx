@@ -186,7 +186,7 @@ export function Toolbar() {
             <Button
               variant="default"
               size="sm"
-              className="h-7 px-2 text-xs bg-blue-600 hover:bg-blue-700 text-white"
+              className="h-7 px-2 text-xs bg-yellow-600 hover:bg-yellow-700 text-white"
               onClick={() => fileInputRef.current?.click()}
               title="Upload Floor Plan"
             >
@@ -202,7 +202,7 @@ export function Toolbar() {
                   size="sm"
                   className={`h-7 px-2 text-xs ${
                     hasMappingData()
-                      ? "border-green-600 text-green-700 hover:bg-green-50"
+                      ? "border-yellow-600 text-yellow-700 hover:bg-yellow-50"
                       : "border-gray-300 text-gray-400 cursor-not-allowed"
                   }`}
                   disabled={!hasMappingData() || isExporting}
@@ -378,8 +378,8 @@ export function Toolbar() {
 
       {/* Tool status indicator */}
       {currentTool && (
-        <div className="px-4 py-1 bg-blue-50 border-b border-blue-200 flex items-center justify-between">
-          <span className="text-xs text-blue-700 font-medium">
+        <div className="px-4 py-1 bg-yellow-50 border-b border-yellow-200 flex items-center justify-between">
+          <span className="text-xs text-yellow-700 font-medium">
             {currentTool === "wifi" && "Click anywhere to place WiFi beacon"}
             {currentTool === "location" && "Click anywhere to add venue"}
             {currentTool === "measure" && "Click anywhere to measure distance"}
@@ -404,8 +404,8 @@ export function Toolbar() {
 
       {/* Grid status indicator */}
       {showGrid && (
-        <div className="px-4 py-1 bg-green-50 border-b border-green-200">
-          <span className="text-xs text-green-700 font-medium">Grid overlay is active</span>
+        <div className="px-4 py-1 bg-yellow-50 border-b border-yellow-200">
+          <span className="text-xs text-yellow-700 font-medium">Grid overlay is active</span>
         </div>
       )}
 
