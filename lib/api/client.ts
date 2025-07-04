@@ -4,7 +4,7 @@ import { toast } from "@/hooks/use-toast"
 // Create axios instance with default config
 const createApiClient = (): AxiosInstance => {
   const client = axios.create({
-    baseURL: process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3000",
+    baseURL:  "http://localhost:3000",
     timeout: 10000,
     headers: {
       "Content-Type": "application/json",
@@ -41,7 +41,7 @@ const createApiClient = (): AxiosInstance => {
           const refreshToken = localStorage.getItem("refresh_token")
           if (refreshToken) {
             const response = await axios.post(
-              `${process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3001"}/api/v1/auth/refresh-token`,
+              `http://localhost:3000/api/v1/auth/refresh-token`,
               {},
               {
                 headers: {

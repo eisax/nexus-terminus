@@ -1,48 +1,62 @@
 "use client"
 
 import type React from "react"
+import { useRef, useEffect, useState } from "react"
+import { Card } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
+import { ZoomIn, ZoomOut, RotateCcw, Navigation, MapPin } from "lucide-react"
 
-import { useRef, useEffect, useState, useCallback } from "react"
-import { useNavigationStore } from "@/lib/store"
-import type { Node, POI } from "@/types/navigation"
+interface Node {
+  id: string
+  x: number
+  y: number
+  type: "start" | "end" | "waypoint" | "poi"
+  name?: string
+}
 
-export function MapViewer() {
+interface Path {
+  from: string
+  to: string
+  distance: number
+}
+
+interface MapViewerProps {
+  nodes?: Node[]
+  paths?: Path[]
+  selectedPath?: string[]
+  className?: string
+}
+
+export function MapViewer({ nodes = [], paths = [], selectedPath = [], className }: MapViewerProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
-  const containerRef = useRef<HTMLDivElement>(null)
+  const [zoom, setZoom] = useState(1)
+  const [pan, setPan] = useState({ x: 0, y: 0 })
   const [isDragging, setIsDragging] = useState(false)
-  const [dragStart, setDragStart] = useState({ x: 0, y: 0 })
-  const [floorPlanImage, setFloorPlanImage] = useState<HTMLImageElement | null>(null)
+  const [lastMousePos, setLastMousePos] = useState({ x: 0, y: 0 })
 
-  const {
-    currentFloor,
-    zoom,
-    panX,
-    panY,
-    selectedNodes,
-    currentPath,
-    editMode,
-    userRole,
-    setPan,
-    setZoom,
-    addNode,
-    addPOI,
-    setSelectedNodes,
-  } = useNavigationStore()
+  // Default nodes for demonstration
+  const defaultNodes: Node[] = [
+    { id: "start", x: 100, y: 100, type: "start", name: "Entrance" },
+    { id: "wp1", x: 200, y: 150, type: "waypoint", name: "Corridor A" },
+    { id: "wp2", x: 300, y: 200, type: "waypoint", name: "Junction" },
+    { id: "poi1", x: 250, y: 100, type: "poi", name: "Conference Room" },
+    { id: "end", x: 400, y: 250, type: "end", name: "Destination" },
+  ]
 
-  // Load floor plan image
-  useEffect(() => {
-    if (currentFloor?.imageUrl) {
-      const img = new Image()
-      img.crossOrigin = "anonymous"
-      img.onload = () => setFloorPlanImage(img)
-      img.src = currentFloor.imageUrl
-    }
-  }, [currentFloor?.imageUrl])
+  const defaultPaths: Path[] = [
+    { from: "start", to: "wp1", distance: 15 },
+    { from: "wp1", to: "wp2", distance: 12 },
+    { from: "wp1", to: "poi1", distance: 8 },
+    { from: "wp2", to: "end", distance: 18 },
+  ]
 
-  // Draw everything on canvas
-  const draw = useCallback(() => {
+  const activeNodes = nodes.length > 0 ? nodes : defaultNodes
+  const activePaths = paths.length > 0 ? paths : defaultPaths
+
+  const draw = () => {
     const canvas = canvasRef.current
-    if (!canvas || !currentFloor) return
+    if (!canvas) return
 
     const ctx = canvas.getContext("2d")
     if (!ctx) return
@@ -50,119 +64,122 @@ export function MapViewer() {
     // Clear canvas
     ctx.clearRect(0, 0, canvas.width, canvas.height)
 
-    // Save context for transformations
+    // Apply transformations
     ctx.save()
-
-    // Apply zoom and pan
-    ctx.translate(panX, panY)
+    ctx.translate(pan.x, pan.y)
     ctx.scale(zoom, zoom)
 
-    // Draw floor plan image
-    if (floorPlanImage) {
-      ctx.drawImage(floorPlanImage, 0, 0, currentFloor.width, currentFloor.height)
+    // Draw background grid
+    ctx.strokeStyle = "#f0f0f0"
+    ctx.lineWidth = 1 / zoom
+    const gridSize = 20
+    for (let x = -pan.x / zoom; x < (canvas.width - pan.x) / zoom; x += gridSize) {
+      if (x >= 0) {
+        ctx.beginPath()
+        ctx.moveTo(x, -pan.y / zoom)
+        ctx.lineTo(x, (canvas.height - pan.y) / zoom)
+        ctx.stroke()
+      }
+    }
+    for (let y = -pan.y / zoom; y < (canvas.height - pan.y) / zoom; y += gridSize) {
+      if (y >= 0) {
+        ctx.beginPath()
+        ctx.moveTo(-pan.x / zoom, y)
+        ctx.lineTo((canvas.width - pan.x) / zoom, y)
+        ctx.stroke()
+      }
     }
 
-    // Draw edges (paths)
-    ctx.strokeStyle = "#10b981"
-    ctx.lineWidth = 4 / zoom
-    currentFloor.edges.forEach((edge) => {
-      const fromNode = currentFloor.nodes.find((n) => n.id === edge.from)
-      const toNode = currentFloor.nodes.find((n) => n.id === edge.to)
+    // Draw paths
+    activePaths.forEach((path) => {
+      const fromNode = activeNodes.find((n) => n.id === path.from)
+      const toNode = activeNodes.find((n) => n.id === path.to)
 
       if (fromNode && toNode) {
+        const isSelected = selectedPath.includes(path.from) && selectedPath.includes(path.to)
+
         ctx.beginPath()
+        ctx.strokeStyle = isSelected ? "#FDB623" : "#333333"
+        ctx.lineWidth = isSelected ? 4 / zoom : 2 / zoom
         ctx.moveTo(fromNode.x, fromNode.y)
         ctx.lineTo(toNode.x, toNode.y)
         ctx.stroke()
+
+        // Draw distance label
+        const midX = (fromNode.x + toNode.x) / 2
+        const midY = (fromNode.y + toNode.y) / 2
+        ctx.fillStyle = isSelected ? "#FDB623" : "#333333"
+        ctx.font = `${12 / zoom}px Arial`
+        ctx.textAlign = "center"
+        ctx.fillText(`${path.distance}m`, midX, midY - 5 / zoom)
       }
     })
-
-    // Draw current path (highlighted)
-    if (currentPath) {
-      ctx.strokeStyle = "#ef4444"
-      ctx.lineWidth = 6 / zoom
-      ctx.beginPath()
-      currentPath.path.forEach((node, index) => {
-        if (index === 0) {
-          ctx.moveTo(node.x, node.y)
-        } else {
-          ctx.lineTo(node.x, node.y)
-        }
-      })
-      ctx.stroke()
-    }
 
     // Draw nodes
-    currentFloor.nodes.forEach((node) => {
-      const isSelected = selectedNodes.includes(node.id)
+    activeNodes.forEach((node) => {
+      const isSelected = selectedPath.includes(node.id)
+      let color = "#333333"
+      let size = 8
 
-      ctx.fillStyle = isSelected ? "#3b82f6" : "#6b7280"
+      switch (node.type) {
+        case "start":
+          color = "#FDB623"
+          size = 12
+          break
+        case "end":
+          color = "#FDB623"
+          size = 12
+          break
+        case "poi":
+          color = isSelected ? "#FDB623" : "#333333"
+          size = 10
+          break
+        case "waypoint":
+          color = isSelected ? "#FDB623" : "#333333"
+          size = 6
+          break
+      }
+
+      // Draw node
       ctx.beginPath()
-      ctx.arc(node.x, node.y, 8 / zoom, 0, 2 * Math.PI)
+      ctx.fillStyle = color
+      ctx.arc(node.x, node.y, size / zoom, 0, 2 * Math.PI)
       ctx.fill()
+
+      // Draw node border
+      ctx.beginPath()
+      ctx.strokeStyle = "#ffffff"
+      ctx.lineWidth = 2 / zoom
+      ctx.arc(node.x, node.y, size / zoom, 0, 2 * Math.PI)
+      ctx.stroke()
 
       // Draw node label
-      if (node.label) {
-        ctx.fillStyle = "#000"
-        ctx.font = `${12 / zoom}px Arial`
-        ctx.fillText(node.label, node.x + 12 / zoom, node.y + 4 / zoom)
+      if (node.name) {
+        ctx.fillStyle = color
+        ctx.font = `${11 / zoom}px Arial`
+        ctx.textAlign = "center"
+        ctx.fillText(node.name, node.x, node.y + (size + 15) / zoom)
       }
-    })
-
-    // Draw POIs
-    currentFloor.pois.forEach((poi) => {
-      // Draw POI icon background
-      ctx.fillStyle = getPOIColor(poi.type)
-      ctx.beginPath()
-      ctx.arc(poi.x, poi.y, 12 / zoom, 0, 2 * Math.PI)
-      ctx.fill()
-
-      // Draw POI icon (simplified)
-      ctx.fillStyle = "#fff"
-      ctx.font = `${14 / zoom}px Arial`
-      ctx.textAlign = "center"
-      ctx.fillText(getPOIIcon(poi.type), poi.x, poi.y + 4 / zoom)
-
-      // Draw POI label
-      ctx.fillStyle = "#000"
-      ctx.font = `${10 / zoom}px Arial`
-      ctx.fillText(poi.name, poi.x, poi.y + 25 / zoom)
     })
 
     ctx.restore()
-  }, [currentFloor, floorPlanImage, zoom, panX, panY, selectedNodes, currentPath])
-
-  // Redraw when dependencies change
-  useEffect(() => {
-    draw()
-  }, [draw])
-
-  // Handle canvas resize
-  useEffect(() => {
-    const canvas = canvasRef.current
-    const container = containerRef.current
-    if (!canvas || !container) return
-
-    const resizeCanvas = () => {
-      canvas.width = container.clientWidth
-      canvas.height = container.clientHeight
-      draw()
-    }
-
-    resizeCanvas()
-    window.addEventListener("resize", resizeCanvas)
-    return () => window.removeEventListener("resize", resizeCanvas)
-  }, [draw])
-
-  // Mouse event handlers
-  const handleMouseDown = (e: React.MouseEvent) => {
-    setIsDragging(true)
-    setDragStart({ x: e.clientX - panX, y: e.clientY - panY })
   }
 
-  const handleMouseMove = (e: React.MouseEvent) => {
+  useEffect(() => {
+    draw()
+  }, [zoom, pan, activeNodes, activePaths, selectedPath])
+
+  const handleMouseDown = (event: React.MouseEvent) => {
+    setIsDragging(true)
+    setLastMousePos({ x: event.clientX, y: event.clientY })
+  }
+
+  const handleMouseMove = (event: React.MouseEvent) => {
     if (isDragging) {
-      setPan(e.clientX - dragStart.x, e.clientY - dragStart.y)
+      const deltaX = event.clientX - lastMousePos.x
+      const deltaY = event.clientY - lastMousePos.y
+      setPan((prev) => ({ x: prev.x + deltaX, y: prev.y + deltaY }))
+      setLastMousePos({ x: event.clientX, y: event.clientY })
     }
   }
 
@@ -170,98 +187,74 @@ export function MapViewer() {
     setIsDragging(false)
   }
 
-  const handleClick = (e: React.MouseEvent) => {
-    if (!currentFloor || isDragging) return
-
-    const canvas = canvasRef.current
-    if (!canvas) return
-
-    const rect = canvas.getBoundingClientRect()
-    const x = (e.clientX - rect.left - panX) / zoom
-    const y = (e.clientY - rect.top - panY) / zoom
-
-    // Check if clicking on existing node
-    const clickedNode = currentFloor.nodes.find((node) => {
-      const distance = Math.sqrt(Math.pow(node.x - x, 2) + Math.pow(node.y - y, 2))
-      return distance < 15
-    })
-
-    if (clickedNode) {
-      setSelectedNodes([clickedNode.id])
-      return
-    }
-
-    // Add new elements based on edit mode
-    if (editMode === "nodes" && (userRole === "admin" || userRole === "editor")) {
-      const newNode: Node = {
-        id: `node_${Date.now()}`,
-        x,
-        y,
-        type: "intersection",
-      }
-      addNode(newNode)
-    } else if (editMode === "pois" && (userRole === "admin" || userRole === "editor")) {
-      const newPOI: POI = {
-        id: `poi_${Date.now()}`,
-        name: "New POI",
-        x,
-        y,
-        type: "other",
-      }
-      addPOI(newPOI)
-    }
+  const handleZoomIn = () => {
+    setZoom((prev) => Math.min(prev * 1.2, 3))
   }
 
-  const handleWheel = (e: React.WheelEvent) => {
-    e.preventDefault()
-    const delta = e.deltaY > 0 ? -0.1 : 0.1
-    setZoom(zoom + delta)
+  const handleZoomOut = () => {
+    setZoom((prev) => Math.max(prev / 1.2, 0.5))
+  }
+
+  const handleReset = () => {
+    setZoom(1)
+    setPan({ x: 0, y: 0 })
   }
 
   return (
-    <div ref={containerRef} className="flex-1 relative overflow-hidden bg-gray-100">
+    <Card className={`relative overflow-hidden ${className}`}>
+      {/* Controls */}
+      <div className="absolute top-4 right-4 z-10 flex flex-col gap-2">
+        <Button
+          variant="secondary"
+          size="sm"
+          onClick={handleZoomIn}
+          className="h-8 w-8 p-0 bg-card/90 backdrop-blur-sm"
+        >
+          <ZoomIn className="h-4 w-4" />
+        </Button>
+        <Button
+          variant="secondary"
+          size="sm"
+          onClick={handleZoomOut}
+          className="h-8 w-8 p-0 bg-card/90 backdrop-blur-sm"
+        >
+          <ZoomOut className="h-4 w-4" />
+        </Button>
+        <Button variant="secondary" size="sm" onClick={handleReset} className="h-8 w-8 p-0 bg-card/90 backdrop-blur-sm">
+          <RotateCcw className="h-4 w-4" />
+        </Button>
+      </div>
+
+      {/* Status */}
+      <div className="absolute top-4 left-4 z-10 flex gap-2">
+        <Badge variant="secondary" className="bg-card/90 backdrop-blur-sm">
+          <Navigation className="h-3 w-3 mr-1" />
+          {activeNodes.length} Nodes
+        </Badge>
+        <Badge variant="secondary" className="bg-card/90 backdrop-blur-sm">
+          <MapPin className="h-3 w-3 mr-1" />
+          {activePaths.length} Paths
+        </Badge>
+      </div>
+
+      {/* Canvas */}
       <canvas
         ref={canvasRef}
-        className="absolute inset-0 cursor-move"
+        width={600}
+        height={400}
+        className="w-full h-full cursor-grab active:cursor-grabbing"
         onMouseDown={handleMouseDown}
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUp}
         onMouseLeave={handleMouseUp}
-        onClick={handleClick}
-        onWheel={handleWheel}
       />
 
-      {currentFloor && (
-        <div className="absolute bottom-4 left-4 bg-white p-2 rounded shadow text-sm">
-          Floor dimension: {currentFloor.width} x {currentFloor.height} px
-        </div>
-      )}
-    </div>
+      {/* Zoom indicator */}
+      <div className="absolute bottom-4 right-4 z-10">
+        <Badge variant="outline" className="bg-card/90 backdrop-blur-sm text-xs">
+          {Math.round(zoom * 100)}%
+        </Badge>
+      </div>
+    </Card>
   )
-}
-
-function getPOIColor(type: POI["type"]): string {
-  const colors = {
-    office: "#3b82f6",
-    restroom: "#10b981",
-    emergency: "#ef4444",
-    elevator: "#8b5cf6",
-    stairs: "#f59e0b",
-    meeting: "#06b6d4",
-    other: "#6b7280",
-  }
-  return colors[type] || colors.other
-}
-
-function getPOIIcon(type: POI["type"]): string {
-  const icons = {
-    office: "🏢",
-    restroom: "🚻",
-    emergency: "🚨",
-    elevator: "🛗",
-    stairs: "🪜",
-    meeting: "👥",
-    other: "📍",
-  }
-  return icons[type] || icons.other
 }

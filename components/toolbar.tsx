@@ -26,9 +26,8 @@ import { useNavigationStore } from "@/lib/store"
 import { useRef, useState } from "react"
 import { CustomDropdown } from "./custom-dropdown"
 import { useRouter } from "next/navigation"
-import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog"
-import { QRCodeCanvas } from "qrcode.react"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import { QrLocationDialog } from "./qr-location-dialog"
 
 // Mock data - in a real app, this would come from your API/database
 const mockLocations = [
@@ -61,6 +60,7 @@ export function Toolbar() {
     completePolygon,
     setBackgroundImage,
     clearAll,
+    mappingData,
     exportMappingData,
     hasMappingData,
   } = useNavigationStore()
@@ -186,7 +186,7 @@ export function Toolbar() {
             <Button
               variant="default"
               size="sm"
-              className="h-7 px-2 text-xs bg-blue-600 hover:bg-blue-700 text-white"
+              className="h-7 px-2 text-xs bg-yellow-600 hover:bg-yellow-700 text-white"
               onClick={() => fileInputRef.current?.click()}
               title="Upload Floor Plan"
             >
@@ -202,7 +202,7 @@ export function Toolbar() {
                   size="sm"
                   className={`h-7 px-2 text-xs ${
                     hasMappingData()
-                      ? "border-green-600 text-green-700 hover:bg-green-50"
+                      ? "border-yellow-600 text-yellow-700 hover:bg-yellow-50"
                       : "border-gray-300 text-gray-400 cursor-not-allowed"
                   }`}
                   disabled={!hasMappingData() || isExporting}
@@ -378,8 +378,8 @@ export function Toolbar() {
 
       {/* Tool status indicator */}
       {currentTool && (
-        <div className="px-4 py-1 bg-blue-50 border-b border-blue-200 flex items-center justify-between">
-          <span className="text-xs text-blue-700 font-medium">
+        <div className="px-4 py-1 bg-yellow-50 border-b border-yellow-200 flex items-center justify-between">
+          <span className="text-xs text-yellow-700 font-medium">
             {currentTool === "wifi" && "Click anywhere to place WiFi beacon"}
             {currentTool === "location" && "Click anywhere to add venue"}
             {currentTool === "measure" && "Click anywhere to measure distance"}
@@ -404,50 +404,25 @@ export function Toolbar() {
 
       {/* Grid status indicator */}
       {showGrid && (
-        <div className="px-4 py-1 bg-green-50 border-b border-green-200">
-          <span className="text-xs text-green-700 font-medium">Grid overlay is active</span>
+        <div className="px-4 py-1 bg-yellow-50 border-b border-yellow-200">
+          <span className="text-xs text-yellow-700 font-medium">Grid overlay is active</span>
         </div>
       )}
 
-      <Dialog open={qrModalOpen} onOpenChange={setQrModalOpen}>
-        <DialogContent className="max-w-xs p-0 rounded-2xl shadow-xl border bg-white">
-          <DialogTitle asChild>
-            <span className="sr-only">Open in Mobile Application</span>
-          </DialogTitle>
-          <div className="flex flex-col items-center w-full">
-            <div className="w-full rounded-t-2xl px-6 pt-6 pb-2">
-              <div className="text-center text-lg font-medium text-gray-900">Open in Mobile Application</div>
-            </div>
-            <div className="bg-white px-4 pt-2 pb-0 flex flex-col items-center w-full">
-              <div
-                className="bg-white border rounded-lg p-2 mt-2 mb-2"
-                style={{ boxShadow: "0 1px 4px rgba(0,0,0,0.04)" }}
-              >
-                <QRCodeCanvas value="https://example.com/app" size={200} bgColor="#fff" />
-              </div>
-              <div className="text-gray-500 text-sm mt-2 mb-1">Learn more:</div>
-              <div className="flex flex-row gap-8 mb-4">
-                <a
-                  href="https://play.google.com/store"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-gray-800 font-medium hover:underline"
-                >
-                  Android app
-                </a>
-                <a
-                  href="https://apps.apple.com"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-gray-800 font-medium hover:underline"
-                >
-                  IOS app
-                </a>
-              </div>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
+       <QrLocationDialog mappingData={mappingData}>
+        <Button 
+          variant="outline"
+          size="sm"
+          onClick={()=>{
+            console.log(mappingData)
+
+            return setQrModalOpen(true)
+          }}
+        >
+          <QrCode className="h-4 w-4" />
+          QR Code
+        </Button>
+      </QrLocationDialog>
     </div>
   )
 }
